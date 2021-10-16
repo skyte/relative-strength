@@ -1,5 +1,6 @@
 # relative-strength
-IBD Style Relative Strength Ranking of Stocks (0-100 Score)
+IBD Style Relative Strength Ranking of Stocks (0-100 Score).  
+I also made a TradingView indicator, but it cannot give you the percentile ranking, it just shows you the Relative Strength: https://www.tradingview.com/script/SHE1xOMC-Relative-Strength-IBD-Style/
 
 ## How To Run
 
