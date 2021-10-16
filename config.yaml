@@ -11,7 +11,7 @@ REFERENCE_TICKER: SPY
 MIN_PERCENTILE: 70
 
 # Choose your universe!
-# Only those stocks are considered which are included in the enabled indexes
+# Only those stocks are considered which are included in the enabled indices
 NQ100: true
 SP500: true
 SP400: false
