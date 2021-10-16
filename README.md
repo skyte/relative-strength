@@ -56,4 +56,4 @@ Can be switched with the field `DATA_SOURCE`
 2. Put in your `API_KEY` in `config.yaml` and change `DATA_SOURCE`.
 
 ## Calculation
-Yearly performance of stock (most recent quarter is weighted double) divided by yearly performance of reference index (`SPY` per default) and prettyfied.
+Yearly performance of stock (most recent quarter is weighted double) divided by yearly performance of reference index (`SPY` by default).

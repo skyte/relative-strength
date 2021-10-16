@@ -57,8 +57,8 @@ def quarters_perf(closes, n):
     return perf_cum.tail(1).item()
 
 
-def positions():
-    """Returns a dataframe doubly sorted by momentum factor, with atr and position size"""
+def rankings():
+    """Returns a dataframe with percentile rankings for relative strength"""
     json = read_json(PRICE_DATA)
     relative_strengths = []
     ranks = []
@@ -104,8 +104,8 @@ def positions():
 
 
 def main():
-    posis = positions()
-    print(posis[0])
+    ranks = rankings()
+    print(ranks[0])
     print("***\nYour 'rs_stocks.csv' is in the output folder.\n***")
     if cfg("EXIT_WAIT_FOR_ENTER"):
         input("Press Enter key to exit...")
