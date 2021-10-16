@@ -1,7 +1,10 @@
 # relative-strength
-IBD Style Relative Strength Ranking of Stocks (0-100 Score).  
+IBD Style Relative Strength Percentile Ranking of Stocks (i.e. 0-100 Score).  
 I also made a TradingView indicator, but it cannot give you the percentile ranking, it just shows you the Relative Strength: https://www.tradingview.com/script/SHE1xOMC-Relative-Strength-IBD-Style/
-
+  
+## Calculation
+Yearly performance of stock (most recent quarter is weighted double) divided by yearly performance of reference index (`SPY` by default).
+  
 ## How To Run
 
 ### Run EXE
@@ -55,6 +58,3 @@ Can be switched with the field `DATA_SOURCE`
 
 1. Create TDAmeritrade Developer Account and App
 2. Put in your `API_KEY` in `config.yaml` and change `DATA_SOURCE`.
-
-## Calculation
-Yearly performance of stock (most recent quarter is weighted double) divided by yearly performance of reference index (`SPY` by default).
