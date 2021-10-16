@@ -64,6 +64,14 @@ def positions():
     ranks = []
     ref = json[REFERENCE_TICKER]
     for ticker in json:
+        if not cfg("SP500") and json[ticker]["universe"] == "S&P 500":
+            continue
+        if not cfg("SP400") and json[ticker]["universe"] == "S&P 400":
+            continue
+        if not cfg("SP600") and json[ticker]["universe"] == "S&P 600":
+            continue
+        if not cfg("NQ100") and json[ticker]["universe"] == "Nasdaq 100":
+            continue
         try:
             closes = list(map(lambda candle: candle["close"], json[ticker]["candles"]))
             closes_ref = list(map(lambda candle: candle["close"], ref["candles"]))
