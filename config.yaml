@@ -1,0 +1,22 @@
+# Data Retrieval
+# Available Sources: YAHOO, TD_AMERITRADE
+DATA_SOURCE: YAHOO
+API_KEY: Your_API_Key
+TICKERS_API: "https://api.tdameritrade.com/v1/marketdata/%s/pricehistory"
+
+# Which Ticker should be the reference for performance?
+REFERENCE_TICKER: SPY
+
+# What is the lowest Percentile you want to see?
+MIN_PERCENTILE: 70
+
+# Choose your universe!
+# Only those stocks are considered which are included in the enabled indexes
+NQ100: true
+SP500: true
+SP400: false
+SP600: false
+
+# Program behavior
+# Should the program wait for you to hit enter to exit?
+EXIT_WAIT_FOR_ENTER: true
