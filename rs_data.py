@@ -94,7 +94,7 @@ def enrich_ticker_data(ticker_response, security):
     ticker_response["sector"] = security["sector"]
     ticker_response["universe"] = security["universe"]
 
-def tda_params(apikey, period_type="year", period=1, frequency_type="daily", frequency=1):
+def tda_params(apikey, period_type="year", period=2, frequency_type="daily", frequency=1):
     """Returns tuple of api get params. Uses clenow default values."""
     return (
            ("apikey", apikey),
@@ -181,7 +181,7 @@ def load_prices_from_yahoo(securities):
     print("*** Loading Stocks from Yahoo Finance ***")
     today = date.today()
     start = time.time()
-    start_date = today - dt.timedelta(days=1*365)
+    start_date = today - dt.timedelta(days=1*365+183) # 183 = 6 months
     tickers_dict = {}
     load_times = []
     for idx, security in enumerate(securities):

@@ -32,6 +32,9 @@ TITLE_TICKER = "Ticker"
 TITLE_SECTOR = "Sector"
 TITLE_UNIVERSE = "Universe"
 TITLE_PERCENTILE = "Percentile"
+TITLE_1M = "1 Month Ago"
+TITLE_3M = "3 Months Ago"
+TITLE_6M = "6 Months Ago"
 TITLE_RS = "Relative Strength"
 
 if not os.path.exists('output'):
@@ -41,15 +44,25 @@ def read_json(json_file):
     with open(json_file, "r") as fp:
         return json.load(fp)
 
-def relative_strength(closes):
-    """Calculates the performance of the last year (most recent quarter is weighted double)"""
-    quarters1 = quarters_perf(closes, 1)
-    quarters2 = quarters_perf(closes, 2)
-    quarters3 = quarters_perf(closes, 3)
-    quarters4 = quarters_perf(closes, 4)
-    return 0.4*quarters1 + 0.2*quarters2 + 0.2*quarters3 + 0.2*quarters4
+def relative_strength(closes: pd.Series, closes_ref: pd.Series):
+    rs_stock = strength(closes)
+    rs_ref = strength(closes_ref)
+    rs = (rs_stock/rs_ref - 1) * 100
+    rs = int(rs*100) / 100 # round to 2 decimals
+    return rs
 
-def quarters_perf(closes, n):
+def strength(closes: pd.Series):
+    """Calculates the performance of the last year (most recent quarter is weighted double)"""
+    try:
+        quarters1 = quarters_perf(closes, 1)
+        quarters2 = quarters_perf(closes, 2)
+        quarters3 = quarters_perf(closes, 3)
+        quarters4 = quarters_perf(closes, 4)
+        return 0.4*quarters1 + 0.2*quarters2 + 0.2*quarters3 + 0.2*quarters4
+    except:
+        return 0
+
+def quarters_perf(closes: pd.Series, n):
     length = min(len(closes), n*int(252/4))
     prices = closes.tail(length)
     pct_chg = prices.pct_change().dropna()
@@ -77,18 +90,24 @@ def rankings():
             closes_ref = list(map(lambda candle: candle["close"], ref["candles"]))
             if closes:
                 closes_series = pd.Series(closes)
+                closes_ref_series = pd.Series(closes_ref)
+                rs = relative_strength(closes_series, closes_ref_series)
+                month = 20
+                tmp_percentile = 100
+                rs1m = relative_strength(closes_series.head(-1*month), closes_ref_series.head(-1*month))
+                rs3m = relative_strength(closes_series.head(-3*month), closes_ref_series.head(-3*month))
+                rs6m = relative_strength(closes_series.head(-6*month), closes_ref_series.head(-6*month))
                 ranks.append(len(ranks)+1)
-                rs_stock = relative_strength(closes_series)
-                rs_ref = relative_strength(pd.Series(closes_ref))
-                rs = (rs_stock/rs_ref - 1) * 100
-                rs = int(rs*100) / 100 # round to 2 decimals
-                relative_strengths.append((0, ticker, json[ticker]["sector"], json[ticker]["universe"], rs))
+                relative_strengths.append((0, ticker, json[ticker]["sector"], json[ticker]["universe"], rs, tmp_percentile, rs1m, rs3m, rs6m))
         except KeyError:
             print(f'Ticker {ticker} has corrupted data.')
     dfs = []
     suffix = ''
-    df = pd.DataFrame(relative_strengths, columns=[TITLE_RANK, TITLE_TICKER, TITLE_SECTOR, TITLE_UNIVERSE, TITLE_RS])
+    df = pd.DataFrame(relative_strengths, columns=[TITLE_RANK, TITLE_TICKER, TITLE_SECTOR, TITLE_UNIVERSE, TITLE_RS, TITLE_PERCENTILE, TITLE_1M, TITLE_3M, TITLE_6M])
     df[TITLE_PERCENTILE] = pd.qcut(df[TITLE_RS], 100, labels=False)
+    df[TITLE_1M] = pd.qcut(df[TITLE_1M], 100, labels=False)
+    df[TITLE_3M] = pd.qcut(df[TITLE_3M], 100, labels=False)
+    df[TITLE_6M] = pd.qcut(df[TITLE_6M], 100, labels=False)
     df = df.sort_values(([TITLE_RS]), ascending=False)
     df[TITLE_RANK] = ranks
     out_tickers_count = 0
