@@ -22,7 +22,7 @@ jobs:
               python -m pip install -r requirements.txt && python relative-strength.py true true ${{ secrets.API_KEY }}
           - name: push to log git
             run: |
-              git clone https://skyte:${{ secrets.PAT }}@github.com/skyte/rs-log.git && rm ./rs-log/rs_stocks.csv && cp ./output/rs_stocks.csv ./rs-log && cd rs-log && git add rs_stocks.csv && git commit rs_stocks.csv -m "CI output update" && git push
+              git clone https://skyte:${{ secrets.PAT }}@github.com/skyte/rs-log.git && rm ./rs-log/rs_stocks.csv && cp ./output/rs_stocks.csv ./rs-log && cd rs-log && git config user.name "CI" && git config user.email "ci@github.com" && git add rs_stocks.csv && git commit rs_stocks.csv -m "CI output update" && git push
           - uses: actions/upload-artifact@v2
             with:
               name: rs_stocks.csv
