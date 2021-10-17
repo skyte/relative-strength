@@ -81,6 +81,7 @@ def rankings():
                 rs_stock = relative_strength(closes_series)
                 rs_ref = relative_strength(pd.Series(closes_ref))
                 rs = (rs_stock/rs_ref - 1) * 100
+                rs = int(rs*100) / 100 # round to 2 decimals
                 relative_strengths.append((0, ticker, json[ticker]["sector"], json[ticker]["universe"], rs))
         except KeyError:
             print(f'Ticker {ticker} has corrupted data.')
