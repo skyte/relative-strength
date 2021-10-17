@@ -11,7 +11,7 @@ Yearly performance of stock (most recent quarter is weighted double) divided by 
 
 ### Run EXE
 
-1. Open the latest successful run here: https://github.com/skyte/relative-strength/actions
+1. Open the latest successful run here: https://github.com/skyte/relative-strength/actions/workflows/exe.yml
 2. Download `exe-package` at the bottom (need to be logged in into github)
 3. Exctract the `relative-strength` folder and enter it
    - If needed open `config.yaml` and put in your preferences 
