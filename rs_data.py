@@ -121,10 +121,10 @@ def get_remaining_seconds(all_load_times, idx, len):
     remaining_seconds = (len - idx) * load_time_ma
     return remaining_seconds
 
-def load_prices_from_tda(securities):
+def load_prices_from_tda(securities, api_key):
     print("*** Loading Stocks from TD Ameritrade ***")
     headers = {"Cache-Control" : "no-cache"}
-    params = tda_params(API_KEY)
+    params = tda_params(api_key)
     tickers_dict = {}
     start = time.time()
     load_times = []
@@ -195,15 +195,16 @@ def load_prices_from_yahoo(securities):
         tickers_dict[security["ticker"]] = ticker_data
     create_price_history_file(tickers_dict)
 
-def save_data(source, securities):
+def save_data(source, securities, api_key):
     if source == "YAHOO":
         load_prices_from_yahoo(securities)
     elif source == "TD_AMERITRADE":
-        load_prices_from_tda(securities)
+        load_prices_from_tda(securities, api_key)
 
 
-def main():
-    save_data(DATA_SOURCE, SECURITIES)
+def main(forceTDA = False, api_key = API_KEY):
+    dataSource = DATA_SOURCE if not forceTDA else "TD_AMERITRADE"
+    save_data(dataSource, SECURITIES, api_key)
 
 if __name__ == "__main__":
     main()

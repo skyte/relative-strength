@@ -6,7 +6,7 @@ import os
 from datetime import date
 from scipy.stats import linregress
 import yaml
-from rs_data import cfg
+from rs_data import TD_API, cfg
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 
