@@ -123,11 +123,11 @@ def rankings():
     return dfs
 
 
-def main():
+def main(skipEnter = False):
     ranks = rankings()
     print(ranks[0])
     print("***\nYour 'rs_stocks.csv' is in the output folder.\n***")
-    if cfg("EXIT_WAIT_FOR_ENTER"):
+    if not skipEnter and cfg("EXIT_WAIT_FOR_ENTER"):
         input("Press Enter key to exit...")
 
 if __name__ == "__main__":
