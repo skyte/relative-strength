@@ -50,7 +50,7 @@ def cfg(key):
             return None
 
 API_KEY = cfg("API_KEY")
-TD_API = cfg("TICKERS_API")
+TD_API = "https://api.tdameritrade.com/v1/marketdata/%s/pricehistory"
 PRICE_DATA_OUTPUT = os.path.join(DIR, "data", "price_history.json")
 REFERENCE_TICKER = cfg("REFERENCE_TICKER")
 DATA_SOURCE = cfg("DATA_SOURCE")

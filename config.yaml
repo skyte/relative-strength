@@ -1,8 +1,9 @@
 # Data Retrieval
 # Available Sources: YAHOO, TD_AMERITRADE
 DATA_SOURCE: YAHOO
+
+# Not needed if you use YAHOO
 API_KEY: Your_API_Key
-TICKERS_API: "https://api.tdameritrade.com/v1/marketdata/%s/pricehistory"
 
 # Which Ticker should be the reference for performance?
 REFERENCE_TICKER: SPY
