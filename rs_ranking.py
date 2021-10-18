@@ -44,7 +44,7 @@ if not os.path.exists('output'):
 def relative_strength(closes: pd.Series, closes_ref: pd.Series):
     rs_stock = strength(closes)
     rs_ref = strength(closes_ref)
-    rs = (rs_stock/rs_ref - 1) * 100
+    rs = (rs_stock-rs_ref)/rs_ref * 100 # equivalent for percentages: (rs_stock/rs_ref - 1) * 100
     rs = int(rs*100) / 100 # round to 2 decimals
     return rs
 
