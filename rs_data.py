@@ -165,7 +165,6 @@ def load_prices_from_tda(securities, api_key):
                 headers=headers
         )
         ticker_data = response.json()
-        ticker_data = {}
         # if not ticker in TICKER_INFO_DICT:
         #     load_ticker_info(ticker, TICKER_INFO_DICT)
         # ticker_data["industry"] = TICKER_INFO_DICT[ticker]["info"]["industry"]
