@@ -49,21 +49,28 @@ def cfg(key):
         except:
             return None
 
+def read_json(json_file):
+    with open(json_file, "r") as fp:
+        return json.load(fp)
+
 API_KEY = cfg("API_KEY")
 TD_API = "https://api.tdameritrade.com/v1/marketdata/%s/pricehistory"
-PRICE_DATA_OUTPUT = os.path.join(DIR, "data", "price_history.json")
+PRICE_DATA_FILE = os.path.join(DIR, "data", "price_history.json")
 REFERENCE_TICKER = cfg("REFERENCE_TICKER")
 DATA_SOURCE = cfg("DATA_SOURCE")
+TICKER_INFO_FILE = os.path.join(DIR, "data_persist", "ticker_info.json")
+# TICKER_INFO_DICT = read_json(TICKER_INFO_FILE)
 
-def getSecurities(url, tickerPos = 1, tablePos = 1, sectorPosOffset = 1, universe = "N/A"):
+def get_securities(url, ticker_pos = 1, table_pos = 1, sector_offset = 1, industry_offset = 1, universe = "N/A"):
     resp = requests.get(url)
     soup = bs.BeautifulSoup(resp.text, 'lxml')
-    table = soup.findAll('table', {'class': 'wikitable sortable'})[tablePos-1]
+    table = soup.findAll('table', {'class': 'wikitable sortable'})[table_pos-1]
     secs = {}
-    for row in table.findAll('tr')[tablePos:]:
+    for row in table.findAll('tr')[table_pos:]:
         sec = {}
-        sec["ticker"] = row.findAll('td')[tickerPos-1].text.strip()
-        sec["sector"] = row.findAll('td')[tickerPos-1+sectorPosOffset].text.strip()
+        sec["ticker"] = row.findAll('td')[ticker_pos-1].text.strip()
+        sec["sector"] = row.findAll('td')[ticker_pos-1+sector_offset].text.strip()
+        sec["industry"] = row.findAll('td')[ticker_pos-1+sector_offset+industry_offset].text.strip()
         sec["universe"] = universe
         secs[sec["ticker"]] = sec
     with open(os.path.join(DIR, "tmp", "tickers.pickle"), "wb") as f:
@@ -71,27 +78,32 @@ def getSecurities(url, tickerPos = 1, tablePos = 1, sectorPosOffset = 1, univers
     return secs
 
 def get_resolved_securities():
-    ref_ticker = {"ticker": REFERENCE_TICKER, "sector": "Reference", "universe": "Reference"}
+    ref_ticker = {"ticker": REFERENCE_TICKER, "sector": "Reference", "industry": "Reference", "universe": "Reference"}
     tickers = {REFERENCE_TICKER: ref_ticker}
     if cfg("NQ100"):
-        tickers.update(getSecurities('https://en.wikipedia.org/wiki/Nasdaq-100', 2, 3, universe="Nasdaq 100"))
+        tickers.update(get_securities('https://en.wikipedia.org/wiki/Nasdaq-100', 2, 3, universe="Nasdaq 100"))
     if cfg("SP500"):
-        tickers.update(getSecurities('http://en.wikipedia.org/wiki/List_of_S%26P_500_companies', sectorPosOffset=3, universe="S&P 500"))
+        tickers.update(get_securities('http://en.wikipedia.org/wiki/List_of_S%26P_500_companies', sector_offset=3, universe="S&P 500"))
     if cfg("SP400"):
-        tickers.update(getSecurities('https://en.wikipedia.org/wiki/List_of_S%26P_400_companies', 2, universe="S&P 400"))
+        tickers.update(get_securities('https://en.wikipedia.org/wiki/List_of_S%26P_400_companies', 2, universe="S&P 400"))
     if cfg("SP600"):
-        tickers.update(getSecurities('https://en.wikipedia.org/wiki/List_of_S%26P_600_companies', 2, universe="S&P 600"))
+        tickers.update(get_securities('https://en.wikipedia.org/wiki/List_of_S%26P_600_companies', 2, universe="S&P 600"))
     return tickers
 
 SECURITIES = get_resolved_securities().values()
 
 
-def create_price_history_file(tickers_dict):
-    with open(PRICE_DATA_OUTPUT, "w") as fp:
+def write_price_history_file(tickers_dict):
+    with open(PRICE_DATA_FILE, "w") as fp:
         json.dump(tickers_dict, fp)
+
+def write_ticker_info_file(info_dict):
+    with open(TICKER_INFO_FILE, "w") as fp:
+        json.dump(info_dict, fp)
 
 def enrich_ticker_data(ticker_response, security):
     ticker_response["sector"] = security["sector"]
+    ticker_response["industry"] = security["industry"]
     ticker_response["universe"] = security["universe"]
 
 def tda_params(apikey, period_type="year", period=2, frequency_type="daily", frequency=1):
@@ -121,6 +133,21 @@ def get_remaining_seconds(all_load_times, idx, len):
     remaining_seconds = (len - idx) * load_time_ma
     return remaining_seconds
 
+def escape_ticker(ticker):
+    return ticker.replace(".","-")
+
+def load_ticker_info(ticker, info_dict):
+    escaped_ticker = escape_ticker(ticker)
+    info = yf.Ticker(escaped_ticker)
+    if not "industry" in info.info:
+        info.info["industry"] = "n/a"
+    ticker_info = {
+        "info": {
+            "industry": info.info["industry"]
+        }
+    }
+    info_dict[ticker] = ticker_info
+
 def load_prices_from_tda(securities, api_key):
     print("*** Loading Stocks from TD Ameritrade ***")
     headers = {"Cache-Control" : "no-cache"}
@@ -130,27 +157,34 @@ def load_prices_from_tda(securities, api_key):
     load_times = []
 
     for idx, sec in enumerate(securities):
+        ticker = sec["ticker"]
         r_start = time.time()
         response = requests.get(
-                TD_API % sec["ticker"],
+                TD_API % ticker,
                 params=params,
                 headers=headers
         )
+        ticker_data = response.json()
+        ticker_data = {}
+        # if not ticker in TICKER_INFO_DICT:
+        #     load_ticker_info(ticker, TICKER_INFO_DICT)
+        # ticker_data["industry"] = TICKER_INFO_DICT[ticker]["info"]["industry"]
         now = time.time()
         current_load_time = now - r_start
         load_times.append(current_load_time)
         remaining_seconds = get_remaining_seconds(load_times, idx, len(securities))
-        ticker_data = response.json()
         enrich_ticker_data(ticker_data, sec)
         tickers_dict[sec["ticker"]] = ticker_data
         error_text = f' Error with code {response.status_code}' if response.status_code != 200 else ''
         print_data_progress(sec["ticker"], sec["universe"], idx, securities, error_text, now - start, remaining_seconds)
 
-    create_price_history_file(tickers_dict)
+    write_price_history_file(tickers_dict)
 
 
 def get_yf_data(security, start_date, end_date):
-        escaped_ticker = security["ticker"].replace(".","-")
+        ticker_data = {}
+        ticker = security["ticker"]
+        escaped_ticker = escape_ticker(ticker)
         df = yf.download(escaped_ticker, start=start_date, end=end_date)
         yahoo_response = df.to_dict()
         timestamps = list(yahoo_response["Open"].keys())
@@ -160,7 +194,6 @@ def get_yf_data(security, start_date, end_date):
         lows = list(yahoo_response["Low"].values())
         highs = list(yahoo_response["High"].values())
         volumes = list(yahoo_response["Volume"].values())
-        ticker_data = {}
         candles = []
 
         for i in range(0, len(opens)):
@@ -185,15 +218,19 @@ def load_prices_from_yahoo(securities):
     tickers_dict = {}
     load_times = []
     for idx, security in enumerate(securities):
+        ticker = security["ticker"]
         r_start = time.time()
         ticker_data = get_yf_data(security, start_date, today)
+        # if not ticker in TICKER_INFO_DICT:
+        #     load_ticker_info(ticker, TICKER_INFO_DICT)
+        # ticker_data["industry"] = TICKER_INFO_DICT[ticker]["info"]["industry"]
         now = time.time()
         current_load_time = now - r_start
         load_times.append(current_load_time)
         remaining_seconds = remaining_seconds = get_remaining_seconds(load_times, idx, len(securities))
-        print_data_progress(security["ticker"], security["universe"], idx, securities, "", time.time() - start, remaining_seconds)
-        tickers_dict[security["ticker"]] = ticker_data
-    create_price_history_file(tickers_dict)
+        print_data_progress(ticker, security["universe"], idx, securities, "", time.time() - start, remaining_seconds)
+        tickers_dict[ticker] = ticker_data
+    write_price_history_file(tickers_dict)
 
 def save_data(source, securities, api_key):
     if source == "YAHOO":

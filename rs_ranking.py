@@ -6,7 +6,7 @@ import os
 from datetime import date
 from scipy.stats import linregress
 import yaml
-from rs_data import TD_API, cfg
+from rs_data import TD_API, cfg, read_json
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -30,6 +30,7 @@ REFERENCE_TICKER = cfg("REFERENCE_TICKER")
 TITLE_RANK = "Rank"
 TITLE_TICKER = "Ticker"
 TITLE_SECTOR = "Sector"
+TITLE_INDUSTRY = "Industry"
 TITLE_UNIVERSE = "Universe"
 TITLE_PERCENTILE = "Percentile"
 TITLE_1M = "1 Month Ago"
@@ -39,10 +40,6 @@ TITLE_RS = "Relative Strength"
 
 if not os.path.exists('output'):
     os.makedirs('output')
-
-def read_json(json_file):
-    with open(json_file, "r") as fp:
-        return json.load(fp)
 
 def relative_strength(closes: pd.Series, closes_ref: pd.Series):
     rs_stock = strength(closes)
@@ -98,12 +95,12 @@ def rankings():
                 rs3m = relative_strength(closes_series.head(-3*month), closes_ref_series.head(-3*month))
                 rs6m = relative_strength(closes_series.head(-6*month), closes_ref_series.head(-6*month))
                 ranks.append(len(ranks)+1)
-                relative_strengths.append((0, ticker, json[ticker]["sector"], json[ticker]["universe"], rs, tmp_percentile, rs1m, rs3m, rs6m))
+                relative_strengths.append((0, ticker, json[ticker]["sector"], json[ticker]["industry"], json[ticker]["universe"], rs, tmp_percentile, rs1m, rs3m, rs6m))
         except KeyError:
             print(f'Ticker {ticker} has corrupted data.')
     dfs = []
     suffix = ''
-    df = pd.DataFrame(relative_strengths, columns=[TITLE_RANK, TITLE_TICKER, TITLE_SECTOR, TITLE_UNIVERSE, TITLE_RS, TITLE_PERCENTILE, TITLE_1M, TITLE_3M, TITLE_6M])
+    df = pd.DataFrame(relative_strengths, columns=[TITLE_RANK, TITLE_TICKER, TITLE_SECTOR, TITLE_INDUSTRY, TITLE_UNIVERSE, TITLE_RS, TITLE_PERCENTILE, TITLE_1M, TITLE_3M, TITLE_6M])
     df[TITLE_PERCENTILE] = pd.qcut(df[TITLE_RS], 100, labels=False)
     df[TITLE_1M] = pd.qcut(df[TITLE_1M], 100, labels=False)
     df[TITLE_3M] = pd.qcut(df[TITLE_3M], 100, labels=False)
