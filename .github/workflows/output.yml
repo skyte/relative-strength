@@ -24,13 +24,13 @@ jobs:
           - name: push to log git
             run: |
               git clone https://skyte:${{ secrets.PAT }}@github.com/skyte/rs-log.git
-              rm ./rs-log/rs_stocks.csv && cp ./output/rs_stocks.csv ./rs-log
+              rm ./rs-log/output/* && cp -a ./output/. ./rs-log/output
               cd rs-log
               git config user.name "CI" && git config user.email "ci@github.com"
-              git add rs_stocks.csv
-              git commit rs_stocks.csv -m "CI output update" || echo "nothing to commit"
+              git add --all
+              git commit -m "CI output update" || echo "nothing to commit"
               git push || echo "nothing to push"
-          - uses: actions/upload-artifact@v2
-            with:
-              name: rs_stocks.csv
-              path: output
+          # - uses: actions/upload-artifact@v2
+          #   with:
+          #     name: rs_stocks.csv
+          #     path: output
