@@ -78,7 +78,7 @@ def get_securities(url, ticker_pos = 1, table_pos = 1, sector_offset = 1, indust
     return secs
 
 def get_resolved_securities():
-    ref_ticker = {"ticker": REFERENCE_TICKER, "sector": "Reference", "industry": "Reference", "universe": "Reference"}
+    ref_ticker = {"ticker": REFERENCE_TICKER, "sector": "--- Reference ---", "industry": "--- Reference ---", "universe": "--- Reference ---"}
     tickers = {REFERENCE_TICKER: ref_ticker}
     if cfg("NQ100"):
         tickers.update(get_securities('https://en.wikipedia.org/wiki/Nasdaq-100', 2, 3, universe="Nasdaq 100"))

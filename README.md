@@ -1,8 +1,10 @@
 # relative-strength
 IBD Style Relative Strength Percentile Ranking of Stocks (i.e. 0-100 Score).  
-Daily generated output: https://github.com/skyte/rs-log/blob/main/rs_stocks.csv  
-  
 I also made a TradingView indicator, but it cannot give you the percentile ranking, it just shows you the Relative Strength: https://www.tradingview.com/script/SHE1xOMC-Relative-Strength-IBD-Style/
+
+## Daily generated outputs
+Stocks: https://github.com/skyte/rs-log/blob/main/rs_stocks.csv  
+Industries: https://github.com/skyte/rs-log/blob/main/rs_industries.csv  
   
 
 ## Calculation
@@ -37,6 +39,7 @@ Instead of running `relative-strength.py` you can also:
 
 - in the `output` folder you will find:
   - the list of ranked stocks: `rs_stocks.csv`
+  - the list of ranked industries: `rs_industries.csv`
 
 
 ## Config

@@ -7,6 +7,7 @@ from datetime import date
 from scipy.stats import linregress
 import yaml
 from rs_data import TD_API, cfg, read_json
+from functools import reduce
 
 DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -29,6 +30,7 @@ REFERENCE_TICKER = cfg("REFERENCE_TICKER")
 
 TITLE_RANK = "Rank"
 TITLE_TICKER = "Ticker"
+TITLE_TICKERS = "Tickers"
 TITLE_SECTOR = "Sector"
 TITLE_INDUSTRY = "Industry"
 TITLE_UNIVERSE = "Universe"
@@ -72,6 +74,8 @@ def rankings():
     json = read_json(PRICE_DATA)
     relative_strengths = []
     ranks = []
+    industries = {}
+    ind_ranks = []
     ref = json[REFERENCE_TICKER]
     for ticker in json:
         if not cfg("SP500") and json[ticker]["universe"] == "S&P 500":
@@ -95,11 +99,32 @@ def rankings():
                 rs3m = relative_strength(closes_series.head(-3*month), closes_ref_series.head(-3*month))
                 rs6m = relative_strength(closes_series.head(-6*month), closes_ref_series.head(-6*month))
                 ranks.append(len(ranks)+1)
+
+                # stocks output
                 relative_strengths.append((0, ticker, json[ticker]["sector"], json[ticker]["industry"], json[ticker]["universe"], rs, tmp_percentile, rs1m, rs3m, rs6m))
+
+                # industries output
+                if json[ticker]["industry"] not in industries:
+                    industries[json[ticker]["industry"]] = {
+                        "info": (0, json[ticker]["industry"], json[ticker]["sector"], 0, 99, 1, 3, 6),
+                        TITLE_RS: [],
+                        TITLE_1M: [],
+                        TITLE_3M: [],
+                        TITLE_6M: [],
+                        TITLE_TICKERS: []
+                    }
+                    ind_ranks.append(len(ind_ranks)+1)
+                industries[json[ticker]["industry"]][TITLE_RS].append(rs)
+                industries[json[ticker]["industry"]][TITLE_1M].append(rs1m)
+                industries[json[ticker]["industry"]][TITLE_3M].append(rs3m)
+                industries[json[ticker]["industry"]][TITLE_6M].append(rs6m)
+                industries[json[ticker]["industry"]][TITLE_TICKERS].append(ticker)
         except KeyError:
             print(f'Ticker {ticker} has corrupted data.')
     dfs = []
     suffix = ''
+
+    # stocks
     df = pd.DataFrame(relative_strengths, columns=[TITLE_RANK, TITLE_TICKER, TITLE_SECTOR, TITLE_INDUSTRY, TITLE_UNIVERSE, TITLE_RS, TITLE_PERCENTILE, TITLE_1M, TITLE_3M, TITLE_6M])
     df[TITLE_PERCENTILE] = pd.qcut(df[TITLE_RS], 100, labels=False)
     df[TITLE_1M] = pd.qcut(df[TITLE_1M], 100, labels=False)
@@ -114,8 +139,34 @@ def rankings():
     df = df.head(out_tickers_count)
 
     df.to_csv(os.path.join(DIR, "output", f'rs_stocks{suffix}.csv'), index = False)
-
     dfs.append(df)
+
+    # industries
+    def getDfView(industry_entry):
+        return industry_entry["info"]
+    def sum(a,b):
+        return a+b
+    def getRsAverage(industries, industry, column):
+        rs = reduce(sum, industries[industry][column])/len(industries[industry][column])
+        rs = int(rs*100) / 100 # round to 2 decimals
+        return rs
+    def getTickers(industries, industry):
+        return ",".join(sorted(industries[industry][TITLE_TICKERS]))
+    df_industries = pd.DataFrame(map(getDfView, list(industries.values())), columns=[TITLE_RANK, TITLE_INDUSTRY, TITLE_SECTOR, TITLE_RS, TITLE_PERCENTILE, TITLE_1M, TITLE_3M, TITLE_6M])
+    df_industries[TITLE_RS] = df_industries.apply(lambda row: getRsAverage(industries, row[TITLE_INDUSTRY], TITLE_RS), axis=1)
+    df_industries[TITLE_1M] = df_industries.apply(lambda row: getRsAverage(industries, row[TITLE_INDUSTRY], TITLE_1M), axis=1)
+    df_industries[TITLE_3M] = df_industries.apply(lambda row: getRsAverage(industries, row[TITLE_INDUSTRY], TITLE_3M), axis=1)
+    df_industries[TITLE_6M] = df_industries.apply(lambda row: getRsAverage(industries, row[TITLE_INDUSTRY], TITLE_6M), axis=1)
+    df_industries[TITLE_PERCENTILE] = pd.qcut(df_industries[TITLE_RS], 100, labels=False)
+    df_industries[TITLE_1M] = pd.qcut(df_industries[TITLE_1M], 100, labels=False)
+    df_industries[TITLE_3M] = pd.qcut(df_industries[TITLE_3M], 100, labels=False)
+    df_industries[TITLE_6M] = pd.qcut(df_industries[TITLE_6M], 100, labels=False)
+    df_industries[TITLE_TICKERS] = df_industries.apply(lambda row: getTickers(industries, row[TITLE_INDUSTRY]), axis=1)
+    df_industries = df_industries.sort_values(([TITLE_RS]), ascending=False)
+    df_industries[TITLE_RANK] = ind_ranks
+
+    df_industries.to_csv(os.path.join(DIR, "output", f'rs_industries{suffix}.csv'), index = False)
+    dfs.append(df_industries)
 
     return dfs
 
