@@ -7,6 +7,9 @@ Stocks: https://github.com/skyte/rs-log/blob/main/output/rs_stocks.csv
 Industries: https://github.com/skyte/rs-log/blob/main/output/rs_industries.csv  
   
 
+## Considered Stocks
+Currently only stocks are considered that are in the Nasdaq 100, S&P 500, S&P 400 or S&P 600 index which amounts to roughly 1500 tickers.  
+I'm investigating a solution to consider all listed stocks from the common exchanges which would be about 10,000 tickers.
 ## Calculation
 Yearly performance of stock (most recent quarter is weighted double) divided by yearly performance of reference index (`SPY` by default).
   
