@@ -27,13 +27,14 @@ PRICE_DATA = os.path.join(DIR, "data", "price_history.json")
 MIN_PERCENTILE = cfg("MIN_PERCENTILE")
 POS_COUNT_TARGET = cfg("POSITIONS_COUNT_TARGET")
 REFERENCE_TICKER = cfg("REFERENCE_TICKER")
+ALL_STOCKS = cfg("USE_ALL_LISTED_STOCKS")
 
 TITLE_RANK = "Rank"
 TITLE_TICKER = "Ticker"
 TITLE_TICKERS = "Tickers"
 TITLE_SECTOR = "Sector"
 TITLE_INDUSTRY = "Industry"
-TITLE_UNIVERSE = "Universe"
+TITLE_UNIVERSE = "Universe" if not ALL_STOCKS else "Exchange"
 TITLE_PERCENTILE = "Percentile"
 TITLE_1M = "1 Month Ago"
 TITLE_3M = "3 Months Ago"
