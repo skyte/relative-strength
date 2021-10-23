@@ -12,7 +12,7 @@ REFERENCE_TICKER: SPY
 MIN_PERCENTILE: 70
 
 # Do you want all listed stocks?
-USE_ALL_LISTED_STOCKS: true
+USE_ALL_LISTED_STOCKS: false
 
 # If USE_ALL_LISTED_STOCKS is false: Only those stocks are considered which are included in the enabled indices
 NQ100: true
