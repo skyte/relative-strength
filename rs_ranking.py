@@ -159,7 +159,10 @@ def rankings():
         return rs
     def getTickers(industries, industry):
         return ",".join(sorted(industries[industry][TITLE_TICKERS]))
-    df_industries = pd.DataFrame(map(getDfView, list(industries.values())), columns=[TITLE_RANK, TITLE_INDUSTRY, TITLE_SECTOR, TITLE_RS, TITLE_PERCENTILE, TITLE_1M, TITLE_3M, TITLE_6M])
+
+    # remove industries with only one stock
+    filtered_industries = filter(lambda i: len(i[TITLE_TICKERS]) > 1, list(industries.values()))
+    df_industries = pd.DataFrame(map(getDfView, filtered_industries), columns=[TITLE_RANK, TITLE_INDUSTRY, TITLE_SECTOR, TITLE_RS, TITLE_PERCENTILE, TITLE_1M, TITLE_3M, TITLE_6M])
     df_industries[TITLE_RS] = df_industries.apply(lambda row: getRsAverage(industries, row[TITLE_INDUSTRY], TITLE_RS), axis=1)
     df_industries[TITLE_1M] = df_industries.apply(lambda row: getRsAverage(industries, row[TITLE_INDUSTRY], TITLE_1M), axis=1)
     df_industries[TITLE_3M] = df_industries.apply(lambda row: getRsAverage(industries, row[TITLE_INDUSTRY], TITLE_3M), axis=1)
@@ -170,6 +173,7 @@ def rankings():
     df_industries[TITLE_6M] = pd.qcut(df_industries[TITLE_6M], 100, labels=False)
     df_industries[TITLE_TICKERS] = df_industries.apply(lambda row: getTickers(industries, row[TITLE_INDUSTRY]), axis=1)
     df_industries = df_industries.sort_values(([TITLE_RS]), ascending=False)
+    ind_ranks = ind_ranks[:len(df_industries)]
     df_industries[TITLE_RANK] = ind_ranks
 
     df_industries.to_csv(os.path.join(DIR, "output", f'rs_industries{suffix}.csv'), index = False)
