@@ -61,8 +61,8 @@ TD_API = "https://api.tdameritrade.com/v1/marketdata/%s/pricehistory"
 PRICE_DATA_FILE = os.path.join(DIR, "data", "price_history.json")
 REFERENCE_TICKER = cfg("REFERENCE_TICKER")
 DATA_SOURCE = cfg("DATA_SOURCE")
-TICKER_INFO_FILE = os.path.join(DIR, "data_persist", "ticker_info.json")
 ALL_STOCKS = cfg("USE_ALL_LISTED_STOCKS")
+TICKER_INFO_FILE = os.path.join(DIR, "data_persist", "ticker_info.json")
 TICKER_INFO_DICT = read_json(TICKER_INFO_FILE)
 REF_TICKER = {"ticker": REFERENCE_TICKER, "sector": "--- Reference ---", "industry": "--- Reference ---", "universe": "--- Reference ---"}
 

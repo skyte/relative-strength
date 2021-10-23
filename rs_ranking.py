@@ -28,6 +28,8 @@ MIN_PERCENTILE = cfg("MIN_PERCENTILE")
 POS_COUNT_TARGET = cfg("POSITIONS_COUNT_TARGET")
 REFERENCE_TICKER = cfg("REFERENCE_TICKER")
 ALL_STOCKS = cfg("USE_ALL_LISTED_STOCKS")
+TICKER_INFO_FILE = os.path.join(DIR, "data_persist", "ticker_info.json")
+TICKER_INFO_DICT = read_json(TICKER_INFO_FILE)
 
 TITLE_RANK = "Rank"
 TITLE_TICKER = "Ticker"
@@ -90,7 +92,9 @@ def rankings():
         try:
             closes = list(map(lambda candle: candle["close"], json[ticker]["candles"]))
             closes_ref = list(map(lambda candle: candle["close"], ref["candles"]))
-            if closes:
+            industry = TICKER_INFO_DICT[ticker]["info"]["industry"] if json[ticker]["industry"] == "unknown" else json[ticker]["industry"]
+            sector = TICKER_INFO_DICT[ticker]["info"]["sector"] if json[ticker]["sector"] == "unknown" else json[ticker]["sector"]
+            if len(closes) >= 2*20 and industry != "n/a" and len(industry.strip()) > 0:
                 closes_series = pd.Series(closes)
                 closes_ref_series = pd.Series(closes_ref)
                 rs = relative_strength(closes_series, closes_ref_series)
@@ -99,27 +103,29 @@ def rankings():
                 rs1m = relative_strength(closes_series.head(-1*month), closes_ref_series.head(-1*month))
                 rs3m = relative_strength(closes_series.head(-3*month), closes_ref_series.head(-3*month))
                 rs6m = relative_strength(closes_series.head(-6*month), closes_ref_series.head(-6*month))
-                ranks.append(len(ranks)+1)
 
-                # stocks output
-                relative_strengths.append((0, ticker, json[ticker]["sector"], json[ticker]["industry"], json[ticker]["universe"], rs, tmp_percentile, rs1m, rs3m, rs6m))
+                # if rs is too big assume there is faulty price data
+                if rs < 100000:
+                    # stocks output
+                    ranks.append(len(ranks)+1)
+                    relative_strengths.append((0, ticker, sector, industry, json[ticker]["universe"], rs, tmp_percentile, rs1m, rs3m, rs6m))
 
-                # industries output
-                if json[ticker]["industry"] not in industries:
-                    industries[json[ticker]["industry"]] = {
-                        "info": (0, json[ticker]["industry"], json[ticker]["sector"], 0, 99, 1, 3, 6),
-                        TITLE_RS: [],
-                        TITLE_1M: [],
-                        TITLE_3M: [],
-                        TITLE_6M: [],
-                        TITLE_TICKERS: []
-                    }
-                    ind_ranks.append(len(ind_ranks)+1)
-                industries[json[ticker]["industry"]][TITLE_RS].append(rs)
-                industries[json[ticker]["industry"]][TITLE_1M].append(rs1m)
-                industries[json[ticker]["industry"]][TITLE_3M].append(rs3m)
-                industries[json[ticker]["industry"]][TITLE_6M].append(rs6m)
-                industries[json[ticker]["industry"]][TITLE_TICKERS].append(ticker)
+                    # industries output
+                    if industry not in industries:
+                        industries[industry] = {
+                            "info": (0, industry, sector, 0, 99, 1, 3, 6),
+                            TITLE_RS: [],
+                            TITLE_1M: [],
+                            TITLE_3M: [],
+                            TITLE_6M: [],
+                            TITLE_TICKERS: []
+                        }
+                        ind_ranks.append(len(ind_ranks)+1)
+                    industries[industry][TITLE_RS].append(rs)
+                    industries[industry][TITLE_1M].append(rs1m)
+                    industries[industry][TITLE_3M].append(rs3m)
+                    industries[industry][TITLE_6M].append(rs6m)
+                    industries[industry][TITLE_TICKERS].append(ticker)
         except KeyError:
             print(f'Ticker {ticker} has corrupted data.')
     dfs = []
@@ -128,9 +134,9 @@ def rankings():
     # stocks
     df = pd.DataFrame(relative_strengths, columns=[TITLE_RANK, TITLE_TICKER, TITLE_SECTOR, TITLE_INDUSTRY, TITLE_UNIVERSE, TITLE_RS, TITLE_PERCENTILE, TITLE_1M, TITLE_3M, TITLE_6M])
     df[TITLE_PERCENTILE] = pd.qcut(df[TITLE_RS], 100, labels=False)
-    df[TITLE_1M] = pd.qcut(df[TITLE_1M], 100, labels=False)
-    df[TITLE_3M] = pd.qcut(df[TITLE_3M], 100, labels=False)
-    df[TITLE_6M] = pd.qcut(df[TITLE_6M], 100, labels=False)
+    df[TITLE_1M] = pd.qcut(df[TITLE_1M], 100, labels=False, duplicates="drop")
+    df[TITLE_3M] = pd.qcut(df[TITLE_3M], 100, labels=False, duplicates="drop")
+    df[TITLE_6M] = pd.qcut(df[TITLE_6M], 100, labels=False, duplicates="drop")
     df = df.sort_values(([TITLE_RS]), ascending=False)
     df[TITLE_RANK] = ranks
     out_tickers_count = 0
