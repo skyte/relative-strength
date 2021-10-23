@@ -95,7 +95,7 @@ def rankings():
             closes_ref = list(map(lambda candle: candle["close"], ref["candles"]))
             industry = TICKER_INFO_DICT[ticker]["info"]["industry"] if json[ticker]["industry"] == "unknown" else json[ticker]["industry"]
             sector = TICKER_INFO_DICT[ticker]["info"]["sector"] if json[ticker]["sector"] == "unknown" else json[ticker]["sector"]
-            if len(closes) >= 2*20 and industry != "n/a" and len(industry.strip()) > 0:
+            if len(closes) >= 6*20 and industry != "n/a" and len(industry.strip()) > 0:
                 closes_series = pd.Series(closes)
                 closes_ref_series = pd.Series(closes_ref)
                 rs = relative_strength(closes_series, closes_ref_series)
@@ -106,7 +106,7 @@ def rankings():
                 rs6m = relative_strength(closes_series.head(-6*month), closes_ref_series.head(-6*month))
 
                 # if rs is too big assume there is faulty price data
-                if rs < 100000:
+                if rs < 8000:
                     # stocks output
                     ranks.append(len(ranks)+1)
                     relative_strengths.append((0, ticker, sector, industry, json[ticker]["universe"], rs, tmp_percentile, rs1m, rs3m, rs6m))
