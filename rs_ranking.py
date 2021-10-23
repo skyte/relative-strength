@@ -79,6 +79,7 @@ def rankings():
     ranks = []
     industries = {}
     ind_ranks = []
+    stock_rs = {}
     ref = json[REFERENCE_TICKER]
     for ticker in json:
         if not cfg("SP500") and json[ticker]["universe"] == "S&P 500":
@@ -109,6 +110,7 @@ def rankings():
                     # stocks output
                     ranks.append(len(ranks)+1)
                     relative_strengths.append((0, ticker, sector, industry, json[ticker]["universe"], rs, tmp_percentile, rs1m, rs3m, rs6m))
+                    stock_rs[ticker] = rs
 
                     # industries output
                     if industry not in industries:
@@ -157,8 +159,10 @@ def rankings():
         rs = reduce(sum, industries[industry][column])/len(industries[industry][column])
         rs = int(rs*100) / 100 # round to 2 decimals
         return rs
+    def rs_for_stock(ticker):
+        return stock_rs[ticker]
     def getTickers(industries, industry):
-        return ",".join(sorted(industries[industry][TITLE_TICKERS]))
+        return ",".join(sorted(industries[industry][TITLE_TICKERS], key=rs_for_stock, reverse=True))
 
     # remove industries with only one stock
     filtered_industries = filter(lambda i: len(i[TITLE_TICKERS]) > 1, list(industries.values()))

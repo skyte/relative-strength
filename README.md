@@ -6,6 +6,9 @@ I also made a TradingView indicator, but it cannot give you the percentile ranki
 Stocks: https://github.com/skyte/rs-log/blob/main/output/rs_stocks.csv  
 Industries: https://github.com/skyte/rs-log/blob/main/output/rs_industries.csv  
   
+
+## Known Issues
+Unfortunately the close prices loaded from the price history API are not always split adjusted. So if a stock had a split recently there is a chance the relative strength value will be wrong...
 ## Calculation
 Yearly performance of stock (most recent quarter is weighted double) divided by yearly performance of reference index (`SPY` by default).
   
