@@ -20,7 +20,7 @@ jobs:
           - name: execute py script # aggregate current data
             run: |
               python -m pip install -r requirements.txt
-              python relative-strength.py true true ${{ secrets.API_KEY }}
+              python relative-strength.py true false ${{ secrets.API_KEY }}
           - name: push to log git
             run: |
               git clone https://skyte:${{ secrets.PAT }}@github.com/skyte/rs-log.git
