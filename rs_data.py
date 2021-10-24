@@ -16,6 +16,7 @@ import numpy as np
 import re
 from ftplib import FTP
 from io import StringIO
+from time import sleep
 
 from datetime import date
 from datetime import datetime
@@ -209,7 +210,7 @@ def load_ticker_info(ticker, info_dict):
     }
     info_dict[ticker] = ticker_info
 
-def load_prices_from_tda(securities, api_key):
+def load_prices_from_tda(securities, api_key, info = {}):
     print("*** Loading Stocks from TD Ameritrade ***")
     headers = {"Cache-Control" : "no-cache"}
     params = tda_params(api_key)
@@ -241,6 +242,10 @@ def load_prices_from_tda(securities, api_key):
         tickers_dict[sec["ticker"]] = ticker_data
         error_text = f' Error with code {response.status_code}' if response.status_code != 200 else ''
         print_data_progress(sec["ticker"], sec["universe"], idx, securities, error_text, now - start, remaining_seconds)
+
+        # throttle if triggered from github
+        if info["forceTDA"]:
+            sleep(0.4)
 
     write_price_history_file(tickers_dict)
 
@@ -274,7 +279,7 @@ def get_yf_data(security, start_date, end_date):
         enrich_ticker_data(ticker_data, security)
         return ticker_data
 
-def load_prices_from_yahoo(securities):
+def load_prices_from_yahoo(securities, info = {}):
     print("*** Loading Stocks from Yahoo Finance ***")
     today = date.today()
     start = time.time()
@@ -296,16 +301,16 @@ def load_prices_from_yahoo(securities):
         tickers_dict[ticker] = ticker_data
     write_price_history_file(tickers_dict)
 
-def save_data(source, securities, api_key):
+def save_data(source, securities, api_key, info = {}):
     if source == "YAHOO":
-        load_prices_from_yahoo(securities)
+        load_prices_from_yahoo(securities, info)
     elif source == "TD_AMERITRADE":
-        load_prices_from_tda(securities, api_key)
+        load_prices_from_tda(securities, api_key, info)
 
 
 def main(forceTDA = False, api_key = API_KEY):
     dataSource = DATA_SOURCE if not forceTDA else "TD_AMERITRADE"
-    save_data(dataSource, SECURITIES, api_key)
+    save_data(dataSource, SECURITIES, api_key, {"forceTDA": forceTDA})
     write_ticker_info_file(TICKER_INFO_DICT)
 
 if __name__ == "__main__":
