@@ -89,6 +89,7 @@ def get_resolved_securities():
     tickers = {REFERENCE_TICKER: REF_TICKER}
     if ALL_STOCKS:
         return get_tickers_from_nasdaq(tickers)
+        # return {"1": {"ticker": "DTST", "sector": "MICsec", "industry": "MICind", "universe": "we"}, "2": {"ticker": "MIGI", "sector": "MIGIsec", "industry": "MIGIind", "universe": "we"}}
     else:
         return get_tickers_from_wikipedia(tickers)
 
