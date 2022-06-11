@@ -49,7 +49,7 @@ if not os.path.exists('output'):
 def relative_strength(closes: pd.Series, closes_ref: pd.Series):
     rs_stock = strength(closes)
     rs_ref = strength(closes_ref)
-    rs = (rs_stock-rs_ref)/rs_ref * 100 # equivalent for percentages: (rs_stock/rs_ref - 1) * 100
+    rs = (1 + rs_stock) / (1 + rs_ref) * 100
     rs = int(rs*100) / 100 # round to 2 decimals
     return rs
 
@@ -135,7 +135,7 @@ def rankings():
 
     # stocks
     df = pd.DataFrame(relative_strengths, columns=[TITLE_RANK, TITLE_TICKER, TITLE_SECTOR, TITLE_INDUSTRY, TITLE_UNIVERSE, TITLE_RS, TITLE_PERCENTILE, TITLE_1M, TITLE_3M, TITLE_6M])
-    df[TITLE_PERCENTILE] = pd.qcut(df[TITLE_RS], 100, labels=False)
+    df[TITLE_PERCENTILE] = pd.qcut(df[TITLE_RS], 100, labels=False, duplicates="drop")
     df[TITLE_1M] = pd.qcut(df[TITLE_1M], 100, labels=False, duplicates="drop")
     df[TITLE_3M] = pd.qcut(df[TITLE_3M], 100, labels=False, duplicates="drop")
     df[TITLE_6M] = pd.qcut(df[TITLE_6M], 100, labels=False, duplicates="drop")
@@ -171,10 +171,10 @@ def rankings():
     df_industries[TITLE_1M] = df_industries.apply(lambda row: getRsAverage(industries, row[TITLE_INDUSTRY], TITLE_1M), axis=1)
     df_industries[TITLE_3M] = df_industries.apply(lambda row: getRsAverage(industries, row[TITLE_INDUSTRY], TITLE_3M), axis=1)
     df_industries[TITLE_6M] = df_industries.apply(lambda row: getRsAverage(industries, row[TITLE_INDUSTRY], TITLE_6M), axis=1)
-    df_industries[TITLE_PERCENTILE] = pd.qcut(df_industries[TITLE_RS], 100, labels=False)
-    df_industries[TITLE_1M] = pd.qcut(df_industries[TITLE_1M], 100, labels=False)
-    df_industries[TITLE_3M] = pd.qcut(df_industries[TITLE_3M], 100, labels=False)
-    df_industries[TITLE_6M] = pd.qcut(df_industries[TITLE_6M], 100, labels=False)
+    df_industries[TITLE_PERCENTILE] = pd.qcut(df_industries[TITLE_RS], 100, labels=False, duplicates="drop")
+    df_industries[TITLE_1M] = pd.qcut(df_industries[TITLE_1M], 100, labels=False, duplicates="drop")
+    df_industries[TITLE_3M] = pd.qcut(df_industries[TITLE_3M], 100, labels=False, duplicates="drop")
+    df_industries[TITLE_6M] = pd.qcut(df_industries[TITLE_6M], 100, labels=False, duplicates="drop")
     df_industries[TITLE_TICKERS] = df_industries.apply(lambda row: getTickers(industries, row[TITLE_INDUSTRY]), axis=1)
     df_industries = df_industries.sort_values(([TITLE_RS]), ascending=False)
     ind_ranks = ind_ranks[:len(df_industries)]
