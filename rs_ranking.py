@@ -106,7 +106,7 @@ def rankings():
                 rs6m = relative_strength(closes_series.head(-6*month), closes_ref_series.head(-6*month))
 
                 # if rs is too big assume there is faulty price data
-                if rs < 8000:
+                if rs < 600:
                     # stocks output
                     ranks.append(len(ranks)+1)
                     relative_strengths.append((0, ticker, sector, industry, json[ticker]["universe"], rs, tmp_percentile, rs1m, rs3m, rs6m))
